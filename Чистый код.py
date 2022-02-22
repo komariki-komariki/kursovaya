@@ -57,7 +57,7 @@ class YaUploader:
 
 if __name__ == '__main__':
     id_ = '758655'
-    token = 'AQAAAAAUu-6UAADLWwrPqihTe0Qels2kc-SCAAU'
+    token = ''
     uploader = YaUploader(token)
     # uploader.upload('https://sun9-23.userapi.com/c302701/u758655/150063596/z_654b532d.jpg')
     result = uploader.create_folder('folder')
@@ -74,3 +74,9 @@ def perebor():
 
 perebor()
 print(photos_link)
+
+# Загрузка фото из интернета
+# url = 'https://sun9-23.userapi.com/c302701/u758655/150063596/z_654b532d.jpg'
+# img_data = requests.get(url).content
+# with open('image_name.jpg', 'wb') as handler:
+#     handler.write(img_data)
