@@ -1,10 +1,11 @@
 import requests
 import os
+
+import json
 from pprint import pprint
-# _id = str(input('Введите id: '))
-# photos_count = str(input(f'Введите количество фотографий для загрузки, количество фотографий в профиле - {bv}: '))
 photos_link = []
 photos_info = {}
+count_dict = {}
 
 class VkPhotos:
     def __init__(self, id_:str):
@@ -15,7 +16,7 @@ class VkPhotos:
             'owner_id': self.id_,
             'access_token': '958eb5d439726565e9333aa30e50e0f937ee432e927f0dbd541c541887d919a7c56f95c04217915c32008',
             'v': '5.131',
-            'count': '10',
+            'count': '3',
             'album_id': 'profile',
             'extended': '1',
             'photo_sizes': '0'}
@@ -27,7 +28,7 @@ class VkPhotos:
                 print(f'Ошибка {error_code}, список кодов ошибок по ссылке: https://dev.vk.com/reference/errors')
         except:
             for key, value in data.items():
-                # print(value['count']) # количество фотографий в профиле
+                count_dict.setdefault(value['count'], params['count'])
                 for z in value['items']:
                     photos_info.setdefault(str(z['likes']['count']) + '.jpg', {'size': str(z['sizes'][-1]['type']),
                                                                                "link": str(z['sizes'][-1]['url'])})
@@ -39,44 +40,46 @@ class YaUploader:
                    'Authorization': f'OAuth {self.token}'}
         self.url = 'https://cloud-api.yandex.net/v1/disk/resources'
 
-    def create_folder(self, path): # РАБОТАЕТ
+    def create_folder(self, path):
         """Создание папки. \n path: Путь к создаваемой папке."""
         requests.put(f'{self.url}?path={path}', headers=self.headers)
 
-    # def upload(self, loadfile, replace=False):
-    #     savefile = "1.jpg"
-    #     upload_url = 'https://cloud-api.yandex.net/v1/disk/resources'
-    #     headers = {'Content-Type': 'application/json', 'Accept': 'application/json', 'Authorization': f'OAuth {self.token}'}
-    #     result = requests.get(f'{upload_url}/upload?path={savefile}&overwrite={replace}', headers=headers).json()
-    #     with open(loadfile, 'rb') as f:
-    #         try:
-    #             requests.put(result['href'], files={'file':f})
-    #             print(f'Файл {savefile} успешно сохранен')
-    #         except KeyError:
-    #             print(result)
+    def upload(self, loadfile, savefile, replace=False):
+        upload_url = 'https://cloud-api.yandex.net/v1/disk/resources'
+        headers = {'Content-Type': 'application/json', 'Accept': 'application/json', 'Authorization': f'OAuth {self.token}'}
+        result = requests.get(f'{upload_url}/upload?path={savefile}&overwrite={replace}', headers=headers).json()
+        with open(loadfile, 'rb') as f:
+            try:
+                requests.put(result['href'], files={'file':f})
+                print(f'Файл {savefile} успешно сохранен')
+            except KeyError:
+                print(result)
+def perebor():
+    for count_profil, count_req in count_dict.items():
+        a = int(count_profil)
+        b = int(count_req)
+    if a > b:
+        i = b
+    else:
+        i = a
+    # bar = IncrementalBar('Загрузка', max = i)
+    for k, v in photos_info.items():
+        uploader = YaUploader(token)
+        uploader.create_folder(id_)
+        img_data = requests.get(v['link']).content
+        with open(k, 'wb') as handler:
+            handler.write(img_data)
+        uploader = YaUploader(token)
+        uploader.upload(k, f'/{id_}/{str(k)}')
+        photos_link.append({'name': str(k), 'size': str(v['size'])})
+        os.remove(k)
+        # bar.next()
+        # bar.finish
 
 if __name__ == '__main__':
-    id_ = '758655'
+    id_ = '60966949'
     token = ''
-    uploader = YaUploader(token)
-    # uploader.upload('https://sun9-23.userapi.com/c302701/u758655/150063596/z_654b532d.jpg')
-    result = uploader.create_folder('folder')
     res = VkPhotos(id_)
     rez = res.search_photos()
-    print(photos_info)
-
-def perebor():
-    for k, v in photos_info.items():
-        print(k) # Название файла для загрузки
-        print(v['size']) # размер фото
-        print(v['link']) # ссылка на скачивание
-        photos_link.append({'name': str(k), 'size': str(v['size'])}) # создан список для сохранения в json-файл
-
-perebor()
-print(photos_link)
-
-# Загрузка фото из интернета
-# url = 'https://sun9-23.userapi.com/c302701/u758655/150063596/z_654b532d.jpg'
-# img_data = requests.get(url).content
-# with open('image_name.jpg', 'wb') as handler:
-#     handler.write(img_data)
+    perebor()
+    print(count_dict)
